@@ -9,7 +9,7 @@ public class Model {
     private final Map<String, Next> model;
 
     public Model(){
-        tokens = getTokens("dataset.txt");
+        tokens = getTokens("dataset_chat.txt");
         total = getTotal(tokens);
         model = getModel(tokens);
     }
