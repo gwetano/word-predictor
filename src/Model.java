@@ -4,9 +4,9 @@ import java.nio.file.Path;
 import java.util.*;
 
 public class Model {
-    ArrayList<String> tokens;
-    Map<String,Integer> total;
-    Map<String, Next> model;
+    private final ArrayList<String> tokens;
+    private final Map<String,Integer> total;
+    private final Map<String, Next> model;
 
     public Model(){
         tokens = getTokens("dataset.txt");
@@ -54,11 +54,11 @@ public class Model {
             Next n;
             if(m.containsKey(tok.get(i))){
                 n = m.get(tok.get(i));
-                if(n.next.containsKey(tok.get(i+1))){
-                    n.next.put(tok.get(i+1), n.next.get(tok.get(i+1))+1);
+                if(n.getNext().containsKey(tok.get(i+1))){
+                    n.getNext().put(tok.get(i+1), n.getNext().get(tok.get(i+1))+1);
                 }
                 else{
-                    n.next.put(tok.get(i+1),1);
+                    n.getNext().put(tok.get(i+1),1);
                 }
             }else{
                 n = new Next(tok.get(i+1),1);
@@ -69,14 +69,16 @@ public class Model {
     }
 
     public String predictNextWord(String word){
+        // se la parola inserita non viene trovata o non vengono trovati successivi risponde con "."
         if(!model.containsKey(word) || total.isEmpty()){
             return ".";
         }
-        TreeMap<String,Integer> tm = model.get(word).next;
+        TreeMap<String,Integer> tm = model.get(word).getNext();
         String val = tm.firstKey();
         int max = tm.get(val);
         Iterator<String> it = tm.keySet().iterator();
 
+        // array che salva le nextWord con conteggio massimo che hanno la stessa frequenza
         ArrayList<String> al = new ArrayList<>();
         al.add(val);
         int flag = 0;
@@ -84,11 +86,12 @@ public class Model {
         while(it.hasNext()){
             String next = it.next();
             if(tm.get(next) > max){
+                al.clear(); // nel caso di un nuovo massimo l'array si svuota
+
                 max = tm.get(next);
                 val = next;
 
                 al.add(next);
-
             } else if (tm.get(next) == max) {
                 al.add(next);
                 flag = 1;
@@ -97,6 +100,7 @@ public class Model {
         if (flag == 0) {
             return val;
         }else{
+            // se ci sono nextWord con stessa frequenza ne viene scelta una in modo casuale
             int r = (int) (al.size() * Math.random());
             return al.get(r);
         }
@@ -105,6 +109,7 @@ public class Model {
     public String generate(String word){
         StringBuffer sb = new StringBuffer();
         sb.append(word);
+        // termina appena trova un "."
         while(!word.equals(".")){
             String nw = predictNextWord(word);
             sb.append(" ");
